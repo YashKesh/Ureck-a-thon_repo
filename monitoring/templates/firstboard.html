@@ -1,0 +1,242 @@
+{% extends 'main.html' %}
+{% block content %}
+<style>
+    /* Style for pop-up window */
+    .popup {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: #f9f9f9;
+        border: 1px solid #ccc;
+        padding: 20px;
+        z-index: 9999;
+    }
+</style>
+<title>
+    {% block title %}
+    First Dashboard
+    {% endblock %}
+</title>
+<body>
+    <div class="row">
+        <h2 class="" style="margin-bottom: 1rem;">Dashboard</h2>
+    </div>
+    <div class="row">
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Images</p>
+                    <h5 class="font-weight-bolder mb-0">
+                      {{ total_images }}
+                      <!-- <span class="text-success text-sm font-weight-bolder">+55%</span> -->
+                    </h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="ni ni-money-coins text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Containers</p>
+                    <h5 class="font-weight-bolder mb-0">
+                      {{ total_containers }}
+                      <!-- <span class="text-success text-sm font-weight-bolder">+3%</span> -->
+                    </h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="ni ni-world text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Running Containers</p>
+                    <h5 class="font-weight-bolder mb-0" style="color: green;">
+                      {{ running_containers }}
+                      <!-- <span class="text-danger text-sm font-weight-bolder">-2%</span> -->
+                    </h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="ni ni-paper-diploma text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-8">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Stopped or Exited Containers</p>
+                    <h5 class="font-weight-bolder mb-0" style="color: red;">
+                      {{ stopped_containers }}
+                      <!-- <span class="text-success text-sm font-weight-bolder">+5%</span> -->
+                    </h5>
+                  </div>
+                </div>
+                <div class="col-4 text-end">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="ni ni-cart text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6>Images in Docker</h6>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+              <div class="table-responsive p-0">
+                {% if images %}
+                <table class="table align-items-center mb-0">
+                  <thead >
+                    <tr">
+                      <th class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7">Repository</th>
+                      <th class="text-uppercase text-secondary text-sm  font-weight-bolder opacity-7 ps-2">ID</th>
+                      <th class="text-center text-uppercase text-secondary text-sm  font-weight-bolder opacity-7">Created</th>
+                      <th class="text-center text-uppercase text-secondary text-sm  font-weight-bolder opacity-7">Size</th>
+                      <th class="text-secondary opacity-7"></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for image in images %}
+                    <tr onclick="window.location='/containers/{{ image.repository }}/'" style="cursor: pointer;">
+                      <td>
+                        <div class="d-flex px-2 py-1">
+                          <div>
+                            <!-- <img src="../assets/img/team-2.jpg" class="avatar avatar-sm me-3" alt="user1">  -->
+                          </div>
+                          <div class="d-flex flex-column justify-content-center">
+                            <h6 class="mb-0 " style="font-size: 1.5rem;">{{ image.repository }}</h6>
+                            <!-- <p class="text-xs text-secondary mb-0">john@creative-tim.com</p> -->
+                          </div>
+                        </div>
+                      </td>
+                      <td>
+                        <p class="font-weight-bold mb-0" style="font-size: 1rem;">{{ image.id }}</p>
+                        <!-- <p class="text-xs text-secondary mb-0">Organization</p> -->
+                      </td>
+                      <td class="align-middle text-center text-sm">
+                        <span class="badge badge-sm bg-gradient-success" style="font-size: 0.9rem;">{{ image.created }}</span>
+                      </td>
+                      <td class="align-middle text-center">
+                        <span class="text-secondary  font-weight-bold">{{ image.size }}</span>
+                      </td>
+                      <td class="align-middle">
+                        <a href="javascript:;" class="text-secondary font-weight-bold text-sm" data-toggle="tooltip" data-original-title="Edit user">
+                          Edit
+                        </a>
+                      </td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+            {% elif error %}
+                <p>Error: {{ error }}</p>
+            {% else %}
+                <p>No Docker images found.</p>
+            {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div class="col-6 text-end ">
+        <a style="float: left;font-size: 1rem;"  class="btn bg-gradient-dark mb-0" href="javascript:;" id="openPopup"><i class="fas fa-plus"></i>&nbsp;&nbsp;Pull New Image</a>
+    </div>
+    
+    <!-- Pop-up window -->
+    <div id="popup" class="popup">
+        <form id="imageForm" class="p-5">
+            {% csrf_token %}
+            <div class="mb-4">
+                <label for="imageUrl" class="form-label fs-5">Image URL:</label>
+                <input type="text" class="form-control fs-5" id="imageUrl" name="image_name">
+            </div>
+            <div class="d-grid gap-3">
+                <button type="submit" class="btn btn-primary btn-lg">Pull Image</button>
+                <button id="closePopup" type="button" class="btn btn-secondary btn-lg">Close</button>
+            </div>
+        </form>
+    </div>
+    
+    
+    
+    <script>
+        // Function to open the pop-up window
+        document.getElementById('openPopup').addEventListener('click', function() {
+            document.getElementById('popup').style.display = 'block';
+        });
+    
+        // Function to close the pop-up window
+        document.getElementById('closePopup').addEventListener('click', function() {
+            document.getElementById('popup').style.display = 'none';
+        });
+        // Function to handle form submission
+        document.getElementById('imageForm').addEventListener('submit', function(event) {
+    event.preventDefault(); // Prevent default form submission
+    var formData = new FormData(this);
+    fetch('/pull-image/', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('input[name="csrfmiddlewaretoken"]').value
+        }
+    }).then(function(response) {
+        if (response.ok) {
+            // Handle success
+            return response.json().then(function(data) {
+                console.log(data.message);
+                // Optionally, you can update the UI to show the pulled image information
+                window.location.reload(); // Reload the page after successful submission
+            });
+        } else {
+            // Handle errors
+            console.error('Error pulling image');
+            return response.json().then(function(data) {
+                console.error(data.error);
+            });
+        }
+    }).catch(function(error) {
+        console.error('Error:', error);
+    });
+});
+
+
+    </script>
+</body>
+{% endblock content %}
