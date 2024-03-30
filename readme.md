@@ -12,7 +12,7 @@ Our solution addresses the growing need for effective Docker container monitorin
 ## Tech Stacks:
 - **Backend**: Django , Python , Docker Api
 - **Frontend**: HTML,CSS AND  JS
-- **Database**: None
+- **Database**: dbsqlite
 - **Containerization**: Docker
 - **Others**: WebSocket for real-time communication
 
@@ -20,7 +20,7 @@ Our solution addresses the growing need for effective Docker container monitorin
 Open Innovation.
 
 ## Installation Guide:
-1. Clone the repository: `git clone <repository_url>`
+1. Clone the repository: `git clone https://github.com/YashKesh/Ureck-a-thon_repo.git`
 2. Install dependencies:
    `pip install -r requirements.txt`
 3. Migrate the database by running the commands
