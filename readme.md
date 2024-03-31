@@ -36,3 +36,8 @@ Open Innovation.
 - Users can manage their containers, view resource usage, and access detailed analytics.
 - The real-time monitoring feature provides live updates on container status and performance metrics.
 
+## Contributing: 
+- contribution to the repo is currently to the members and if wanted to contribute can contact the repo owner
+## License: 
+- None.
+
