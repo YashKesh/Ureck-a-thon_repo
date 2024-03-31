@@ -1,0 +1,267 @@
+<!-- all_containers.html -->
+{% extends 'main.html' %}
+{% block content %}
+<body>
+    <h2 style="margin-bottom: 1rem;">All Containers</h1>
+    <div class="row">
+        <div class="col-12">
+          <div class="card mb-4">
+            <div class="card-header pb-0">
+              <h6>Containers List</h6>
+            </div>
+            <div class="card-body px-0 pt-0 pb-2">
+              <div class="table-responsive p-0">
+                <table class="table align-items-center justify-content-center mb-0">
+                  <thead>
+                    <tr>
+                      <th
+                        class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7"
+                      >
+                        Container id
+                      </th>
+                      <th
+                        class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7"
+                      >
+                        Names
+                      </th>
+                      <th
+                        class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7 ps-2"
+                      >
+                        Tags
+                      </th>
+                      <th
+                        class="text-uppercase text-secondary text-sm font-weight-bolder opacity-7 ps-2"
+                      >
+                        Status
+                      </th>
+                      <th
+                        class="text-uppercase text-secondary text-sm font-weight-bolder text-center opacity-7 ps-2"
+                      >
+                        Creation time
+                      </th>
+                      <!-- <th class="text-uppercase text-secondary text-sm font-weight-bolder text-center opacity-7 ps-2">PORTS</th> -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for container in containers %}
+                    <tr>
+                      <td>
+                        <div class="d-flex px-2">
+                          <div>
+                            <!-- <img src="../assets/img/small-logos/logo-spotify.svg" class="avatar avatar-sm rounded-circle me-2" alt="spotify"> -->
+                          </div>
+                          <div class="my-auto">
+                            <h6
+                              class="mb-0"
+                              style="font-size: 1rem; margin-left: 0.5rem"
+                            >
+                              {{ container.id|slice:":10" }}
+                            </h6>
+                          </div>
+                        </div>
+                      </td>
+                      <td class="align-middle text-center">
+                        <div class="d-flex align-items-center">
+                          <span class="me-2 font-weight-bold" style="font-size: 1rem"
+                            >{{ container.name }}</span
+                          >
+                          <div></div>
+                        </div>
+                      </td>
+                      <td>
+                        <p class="font-weight-bold mb-0" style="font-size: 1rem">
+                          {{ container.image }}
+                        </p>
+                      </td>
+                      <td>
+                        {% if container.status == 'running' %}
+                        <span
+                          class="badge badge-sm bg-success"
+                          style="font-size: 0.8rem"
+                          >{{ container.status }}</span
+                        >
+                        {% else %}
+                        <span
+                          class="badge badge-sm bg-danger"
+                          style="font-size: 0.8rem"
+                          >{{ container.status }}</span
+                        >
+                        {% endif %}
+                      </td>
+                      <td class="align-middle text-center">
+                        <div class="d-flex align-items-center justify-content-center">
+                          <span class="me-2 font-weight-bold" style="font-size: 1rem"
+                            >{{ container.created_ago }}</span
+                          >
+                          <div></div>
+                        </div>
+                      </td>
+                      <td class="align-middle">
+                        {% if container.status == 'running' %}
+                        <button
+                          type="button"
+                          class="btn btn-danger stop-container"
+                          data-container-id="{{ container.id }}"
+                          style="margin-top: 1rem"
+                        >
+                          Stop
+                        </button>
+                        {% else %}
+                        <button
+                          type="button"
+                          class="btn btn-success start-container"
+                          data-container-id="{{ container.id }}"
+                          style="margin-top: 1rem"
+                        >
+                          Start
+                        </button>
+                        {% endif %}
+                        <button
+                          type="button"
+                          class="btn btn-danger delete-container"
+                          data-container-id="{{ container.id }}"
+                          style="
+                            margin-top: 1rem;
+                            margin-left: 1rem;
+                            margin-right: -3rem;
+                          "
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                      <td colspan="7">No containers found</td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+        $(document).ready(function () {
+          // Function to retrieve CSRF token from cookie
+          function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+              var cookies = document.cookie.split(";");
+              for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === name + "=") {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+                }
+              }
+            }
+            return cookieValue;
+          }
+      
+          $(".start-container").click(function () {
+            var containerId = $(this).data("container-id");
+            var csrftoken = getCookie("csrftoken");
+            $.ajax({
+              url: "/start-container/" + containerId + "/",
+              type: "POST",
+              dataType: "json",
+              beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+              },
+              success: function (response) {
+                if (response.status === "success") {
+                  // Reload the page upon successful start
+                  location.reload();
+                } else {
+                  alert("Error: " + response.message);
+                }
+              },
+              error: function (xhr, status, error) {
+                alert("Error: " + error);
+              },
+            });
+          });
+      
+          $(".stop-container").click(function () {
+            var containerId = $(this).data("container-id");
+            var csrftoken = getCookie("csrftoken");
+            $.ajax({
+              url: "/stop-container/" + containerId + "/",
+              type: "POST",
+              dataType: "json",
+              beforeSend: function (xhr, settings) {
+                xhr.setRequestHeader("X-CSRFToken", csrftoken);
+              },
+              success: function (response) {
+                if (response.status === "success") {
+                  // Reload the page upon successful stop
+                  location.reload();
+                } else {
+                  alert("Error: " + response.message);
+                }
+              },
+              error: function (xhr, status, error) {
+                alert("Error: " + error);
+              },
+            });
+          });
+        });
+      </script>
+      
+      <script>
+        $(document).ready(function () {
+          $(".delete-container").click(function () {
+            var containerId = $(this).data("container-id");
+            
+            // Show confirmation dialog
+            var confirmDelete = confirm(
+              "Are you sure you want to delete this container?"
+            );
+            if (confirmDelete) {
+              var csrftoken = getCookie("csrftoken");
+              $.ajax({
+                url: "/delete-container/" + containerId + "/",
+                type: "POST",
+                dataType: "json",
+                beforeSend: function (xhr, settings) {
+                  xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                },
+                success: function (response) {
+                  if (response.status === "success") {
+                    // Reload the page upon successful deletion
+                    location.reload();
+                  } else {
+                    alert("Error: " + response.message);
+                  }
+                },
+                error: function (xhr, status, error) {
+                  alert("Error: " + error);
+                },
+              });
+            }
+          });
+      
+          // Function to retrieve CSRF token from cookie
+          function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== "") {
+              var cookies = document.cookie.split(";");
+              for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === name + "=") {
+                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                  break;
+                }
+              }
+            }
+            return cookieValue;
+          }
+        });
+      </script>
+</body>
+
+{% endblock content %}

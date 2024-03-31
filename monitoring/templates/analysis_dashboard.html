@@ -1,0 +1,395 @@
+{% extends 'main.html' %}
+{% block content %}
+<style>
+    .sharing {
+        display: flex;
+    }
+</style>
+
+<div class="row">
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100 sharing">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-10 sharing">
+                        <canvas id="cpuChart"></canvas>
+                        <div class="col-5 d-flex" style="margin-left: -9%;margin-top: 18%;">
+                            <div>
+                                <h4>Average Usage</h4>
+                                <h2 id="cpu_usage">{{ average_cpu_usage }}%</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-10 sharing">
+                        <canvas id="memChart"></canvas>
+                        <div class="col-5 d-flex" style="margin-left: -9%;margin-top: 18%;">
+                            <div>
+                                <h4>Average Usage</h4>
+                                <h2 id="mem_usage">{{ mem_usage }}MB</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <canvas id="timelineChart"></canvas>
+                <h2 style="align-items: center;display: block;justify-content: center;text-align: center;margin-top: 2%;">Memory vs CPU usage</h2>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <canvas id="timelineCPU"></canvas>
+                <h2 style="align-items: center;display: block;justify-content: center;text-align: center;margin-top: 2%;">CPU usage</h2>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-6 mb-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <canvas id="timelineMEM"></canvas>
+                <h2 style="align-items: center;display: block;justify-content: center;text-align: center;margin-top: 2%;">Memory usage</h2>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var cpuTimelineData = {
+            labels: [],
+            datasets: [{
+                label: 'CPU Usage (%)',
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+                data: []
+            }]
+        };
+
+        var memTimelineData = {
+            labels: [],
+            datasets: [{
+                label: 'Memory Usage (%)',
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                data: []
+            }]
+        };
+
+        var timelineOptions = {
+            responsive: true,
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    time: {
+                        unit: 'minute',  // Display timestamps in minutes
+                        displayFormats: {
+                            minute: 'HH:mm:ss'  // Format for hours and minutes
+                        }
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 10
+                    }
+                }],
+                yAxes: [{
+                    type: 'linear',
+                    ticks: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }]
+            }
+        };
+
+        var cpuTimelineCtx = document.getElementById('timelineCPU').getContext('2d');
+        var cpuTimelineChart = new Chart(cpuTimelineCtx, {
+            type: 'line',
+            data: cpuTimelineData,
+            options: timelineOptions
+        });
+
+        var memTimelineCtx = document.getElementById('timelineMEM').getContext('2d');
+        var memTimelineChart = new Chart(memTimelineCtx, {
+            type: 'line',
+            data: memTimelineData,
+            options: timelineOptions
+        });
+
+        function fetchData() {
+            $.ajax({
+                url: '/analysis_update/',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var currentTime = new Date();
+                    var formattedTime = currentTime.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit',second : '2-digit'});
+                    
+                    // Update CPU timeline data
+                    cpuTimelineChart.data.labels.push(formattedTime);
+                    cpuTimelineChart.data.datasets[0].data.push(data.average_cpu_usage);
+
+                    // Update Memory timeline data
+                    memTimelineChart.data.labels.push(formattedTime);
+                    memTimelineChart.data.datasets[0].data.push(data.mem_usage);
+
+                    // Slice arrays to show data for the last 30 seconds
+                    if (cpuTimelineChart.data.labels.length > 15) {
+                        cpuTimelineChart.data.labels.shift();
+                        cpuTimelineChart.data.datasets[0].data.shift();
+                    }
+
+                    if (memTimelineChart.data.labels.length > 15) {
+                        memTimelineChart.data.labels.shift();
+                        memTimelineChart.data.datasets[0].data.shift();
+                    }
+
+                    cpuTimelineChart.update();
+                    memTimelineChart.update();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching data:', error);
+                }
+            });
+        }
+
+        fetchData();
+        setInterval(fetchData, 5000); // Refresh data every 5 seconds
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        var timelineData = {
+            labels: [],
+            datasets: [{
+                label: 'CPU Usage (%)',
+                yAxisID: 'y-axis-1',
+                backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1,
+                data: []
+            }, {
+                label: 'Memory Usage (%)',
+                yAxisID: 'y-axis-2',
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1,
+                data: []
+            }]
+        };
+
+        var timelineOptions = {
+            responsive: true,
+            scales: {
+                xAxes: [{
+                    type: 'time',
+                    time: {
+                        unit: 'minute',  // Display timestamps in minutes
+                        displayFormats: {
+                            minute: 'HH:mm:ss'  // Format for hours and minutes
+                        }
+                    },
+                    ticks: {
+                        autoSkip: true,
+                        maxTicksLimit: 10
+                    }
+                }],
+                yAxes: [{
+                    id: 'y-axis-1',
+                    type: 'linear',
+                    position: 'left',
+                    ticks: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }, {
+                    id: 'y-axis-2',
+                    type: 'linear',
+                    position: 'right',
+                    ticks: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }]
+            }
+        };
+
+        var timelineCtx = document.getElementById('timelineChart').getContext('2d');
+        var timelineChart = new Chart(timelineCtx, {
+            type: 'line',
+            data: timelineData,
+            options: timelineOptions
+        });
+
+        function fetchData() {
+            $.ajax({
+                url: '/analysis_update/',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var currentTime = new Date();
+                    timelineChart.data.labels.push(currentTime.toLocaleTimeString('en-US', {hour: '2-digit', minute: '2-digit',second:'2-digit'}));
+                    timelineChart.data.datasets[0].data.push(data.average_cpu_usage);
+                    timelineChart.data.datasets[1].data.push(data.mem_usage);
+
+                    // Slice arrays to show data for the last 30 seconds
+                    if (timelineChart.data.labels.length > 20) {
+                        timelineChart.data.labels.shift();
+                        timelineChart.data.datasets[0].data.shift();
+                        timelineChart.data.datasets[1].data.shift();
+                    }
+
+                    timelineChart.update();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching data:', error);
+                }
+            });
+        }
+
+        fetchData();
+        setInterval(fetchData, 5000); // Refresh data every 5 seconds
+    });
+</script>
+
+<script>
+    $(document).ready(function() {
+        var cpuData = [];
+        var memData = [];
+        var timestamps = [];
+
+        function fetchData() {
+            $.ajax({
+                url: '/analysis_update/',
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    // Update text data
+                    $('#cpu_usage').text(data.average_cpu_usage + "%");
+                    $('#mem_usage').text(data.mem_usage + "MB");
+
+                    // Update CPU Chart
+                    cpuChart.data.datasets[0].data = [data.average_cpu_usage, 100 - data.average_cpu_usage];
+                    cpuChart.update();
+
+                    // Update Memory Chart
+                    memChart.data.datasets[0].data = [data.average_mem_usage, 100 - data.average_mem_usage];
+                    memChart.update();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error fetching data:', error);
+                }
+            });
+        }
+
+        // Initial data fetch
+        fetchData();
+
+        // Refresh data every 5 seconds
+        setInterval(fetchData, 5000);
+    });
+</script>
+
+<script>
+    // CPU Chart
+    var cpuCtx = document.getElementById('cpuChart').getContext('2d');
+    var cpuChart = new Chart(cpuCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Used', 'Available'],
+            datasets: [{
+                label: 'CPU Usage',
+                data: [{{ average_cpu_usage }}, {{ remaining_cpu_capacity }}],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)', // Used
+                    'rgba(54, 162, 235, 0.5)'   // Available
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            cutoutPercentage: 60,  // Adjust the size of the hole in the middle (optional)
+            responsive: true,
+            legend: {
+                position: 'bottom',
+                labels: {
+                    fontSize: 14,
+                   
+                }
+            },
+            title: {
+                display: true,
+                text: 'Average CPU Usage',
+                titleFont: {
+                    size: 14 // Adjust the font size here
+                }
+            }
+        }
+    });
+
+    // Memory Chart
+    var memCtx = document.getElementById('memChart').getContext('2d');
+    var memChart = new Chart(memCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Used', 'Available'],
+            datasets: [{
+                label: 'Memory Usage',
+                data: [{{ average_mem_usage }}, {{ remaining_mem_capacity }}],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)', // Used
+                    'rgba(54, 162, 235, 0.5)'   // Available
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            cutoutPercentage: 60,  // Adjust the size of the hole in the middle (optional)
+            responsive: true,
+            legend: {
+                position: 'bottom',
+                labels: {
+                    fontSize: 14
+                }
+            },
+            title: {
+                display: true,
+                text: 'Average Memory Usage'
+            }
+        }
+    });
+</script>
+
+{% endblock %}
